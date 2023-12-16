@@ -22,6 +22,13 @@
             box-sizing: border-box;
             backdrop-filter: blur(10px);
         }
+        #nickname{
+            border: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            border-radius: 2rem;
+            margin: 0.25rem;
+        }
 
         #input {
             border: none;
@@ -63,37 +70,47 @@
 
 <body>
     <ul id="messages"></ul>
+    <div id="nicknameDisplay"></div>
     <form id="form" action="">
+        <input type=text id="nickname"/>
         <input id="input" autocomplete="off" /><button>Send</button>
     </form>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const socket = io();
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const socket = io();
 
-        const messages = document.getElementById('messages');
-        const form = document.getElementById('form');
-        const input = document.getElementById('input');
+            const messages = document.getElementById('messages');
+            const form = document.getElementById('form');
+            const input = document.getElementById('input');
+            const nickname = document.getElementById('nickname');
+            const nicknameDisplay = document.getElementById('nicknameDisplay');
 
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (input.value && nickname.value) {
+                    // socket.emit('send-nickname', nickname.value, input.value);
+                    socket.emit('chat message',{message: input.value, nickname: nickname.value});
+                    input.value = '';
+                }
+            });
 
-        socket.on('connection', (message) => {
-            console.log(message);
+            // socket.on('nickname', function (receivedNickname) {
+            //     console.log('Received nickname:', receivedNickname);
+            //     nicknameDisplay.textContent = 'Nickname: ' + receivedNickname;
+            // });
+
+            socket.on('chat message', function (data) {
+                var item = document.createElement('li');
+                item.textContent = `${data.nickname}: ${data.message}`;
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
+            });
         });
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (input.value) {
-                socket.emit('chat message', input.value);
-                input.value = '';
-            }
-        });
-
-        socket.on('chat message', function (msg) {
-            var item = document.createElement('li');
-            item.textContent = msg;
-            messages.appendChild(item);
-            window.scrollTo(0, document.body.scrollHeight);
-        });
-        
     </script>
+
+
 </body>
 
 </html>
